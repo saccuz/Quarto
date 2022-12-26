@@ -6,6 +6,19 @@ import argparse
 import random
 import quarto
 
+class examPlayer(quarto.Player):
+    """ Our player for the exam """
+    
+    def __init__(self, quarto: quarto.Quarto) -> None:
+        super().__init__(quarto)
+        dict_of_states = dict()
+        depth = 0
+
+    def choose_piece(self) -> int:
+        pass
+
+    def place_piece(self) -> tuple[int, int]:
+        pass
 
 class RandomPlayer(quarto.Player):
     """Random player"""
