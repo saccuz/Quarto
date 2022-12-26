@@ -9,10 +9,21 @@ import quarto
 class examPlayer(quarto.Player):
     """ Our player for the exam """
     
+    import strategy
+
+    compute_move = False
+    dict_of_states = dict()
+    
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
-        dict_of_states = dict()
-        depth = 0
+    
+    def game_control(self):
+        if self.compute_move:
+            self.strategy.minMax(quarto, self.dict_of_states)
+        # TO BE COMPLETED 
+        # TODO:
+        # gestione del riavvio della ricerca
+        # gestione della profondità
 
     def choose_piece(self) -> int:
         pass
