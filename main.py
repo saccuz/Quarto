@@ -11,25 +11,30 @@ class examPlayer(quarto.Player):
     
     import strategy
 
-    compute_move = False
-    dict_of_states = dict()
+    dict_of_states = dict() # dictionary to store the possible states
+    moves_counter = 0 # duration of the not searching minMax
     
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
     
+    # interface to the minMax function 
     def game_control(self):
-        if self.compute_move:
-            self.strategy.minMax(quarto, self.dict_of_states)
-        # TO BE COMPLETED 
-        # TODO:
-        # gestione del riavvio della ricerca
-        # gestione della profondità
+        if self.strategy.get_depth_limit(): # control to limit the depth search
+            if self.moves_counter == 3:
+                self.strategy.set_dict_size(0)
+                self.moves_counter = 0
+            self.moves_counter += 1
+            
+        ply, _  = self.strategy.minMax(quarto, self.dict_of_states)
+        return ply
 
     def choose_piece(self) -> int:
-        pass
+        x = self.game_control()
+        return x[1]
 
     def place_piece(self) -> tuple[int, int]:
-        pass
+        x = self.game_control()
+        return x[0]
 
 class RandomPlayer(quarto.Player):
     """Random player"""

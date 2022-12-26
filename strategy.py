@@ -7,6 +7,16 @@ from copy import deepcopy
 DEPTH = 500000
 dict_size = 0
 
+# utility function to interface with the player
+def get_depth_limit() -> bool:
+    global dict_size
+    return dict_size >= DEPTH
+
+# utility function to interface with the player
+def set_dict_size(x: int) -> None:
+    global dict_size
+    dict_size = x
+
 # check state's symmetries generating all possible dictionary's key
 def generate_keys(board, piece) -> list:
     possible_keys = []
@@ -27,6 +37,7 @@ def check_dict(dict_of_states: dict, state: quarto.Quarto) -> tuple:
             return k, True
     return (str(board),piece), False
 
+# stop condition
 def evaluate(state: quarto.Quarto) -> int:
     if state.check_winner() != -1:
         return -100
