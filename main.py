@@ -6,7 +6,7 @@ import argparse
 import random
 import quarto
 
-class examPlayer(quarto.Player):
+class ExamPlayer(quarto.Player):
     """ Our player for the exam """
     
     import strategy
@@ -32,7 +32,7 @@ class examPlayer(quarto.Player):
         x = self.game_control()
         return x[1]
 
-    def place_piece(self) -> tuple[int, int]:
+    def place_piece(self) -> tuple:
         x = self.game_control()
         return x[0]
 
@@ -45,7 +45,7 @@ class RandomPlayer(quarto.Player):
     def choose_piece(self) -> int:
         return random.randint(0, 15)
 
-    def place_piece(self) -> tuple[int, int]:
+    def place_piece(self) -> tuple:
         return random.randint(0, 3), random.randint(0, 3)
 
 
