@@ -16,7 +16,7 @@ class Player(object):
         pass
 
     @abstractmethod
-    def place_piece(self) -> tuple[int, int]:
+    def place_piece(self) -> tuple:
         pass
 
     def get_game(self):
