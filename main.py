@@ -13,9 +13,11 @@ class ExamPlayer(quarto.Player):
 
     dict_of_states = dict() # dictionary to store the possible states
     moves_counter = 0 # duration of the not searching minMax
+    __quarto = None
     
     def __init__(self, quarto: quarto.Quarto) -> None:
         super().__init__(quarto)
+        self.__quarto = quarto
     
     # interface to the minMax function 
     def game_control(self):
@@ -25,7 +27,7 @@ class ExamPlayer(quarto.Player):
                 self.moves_counter = 0
             self.moves_counter += 1
             
-        ply, _  = self.strategy.minMax(quarto, self.dict_of_states)
+        ply, _  = self.strategy.minMax(self.__quarto, self.dict_of_states)
         return ply
 
     def choose_piece(self) -> int:
@@ -51,7 +53,7 @@ class RandomPlayer(quarto.Player):
 
 def main():
     game = quarto.Quarto()
-    game.set_players((RandomPlayer(game), RandomPlayer(game)))
+    game.set_players((ExamPlayer(game), RandomPlayer(game)))
     winner = game.run()
     logging.warning(f"main: Winner: player {winner}")
 

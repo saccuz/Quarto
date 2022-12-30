@@ -48,8 +48,8 @@ def evaluate(state: quarto.Quarto) -> int:
 
 # generate every possible piece placement and piece selection
 def generate_possible_moves(state: quarto.Quarto):
-    positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state.__placeable(x,y)]
-    pieces_free = [p for p in list(range(0,16)) if p not in state.__board and p != state.get_selected_piece()]
+    positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]
+    pieces_free = [p for p in list(range(0,16)) if p not in state._Quarto__board and p != state.get_selected_piece()]
     return [x for x in product(positions, pieces_free)]
     
 def minMax(state: quarto.Quarto, dict_of_states: dict):
@@ -61,14 +61,14 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
 
     # depth checking
     if dict_size >= DEPTH:
-        k, f = check_dict(state)
+        k, f = check_dict(dict_of_states, state)
         if not f:
             return ((random.randint(0,3), random.randint(0,3)),random.randint(0,15)),100
         else:
             return max(dict_of_states[k], key=lambda x: x[1])
 
     result = list()
-    _key, found = check_dict(state)
+    _key, found = check_dict(dict_of_states, state)
     if not found:
         dict_of_states[_key] = list()
         dict_size += 1
@@ -77,7 +77,7 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
             dict_of_states[_key].append((ply,val))
             # Trying the move and recursively calling the min max on the new state
             tmp_state = deepcopy(state)
-            tmp_state.place(ply[0])
+            tmp_state.place(ply[0][0],ply[0][1])
             tmp_state.select(ply[1])
             _ , val = minMax(tmp_state, dict_of_states)
             result.append((ply, -val))
@@ -90,4 +90,4 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
         # Already explored state
         return max(dict_of_states[_key], key=lambda x: x[1])
     
-    return max(result, lambda x: x[1])
+    return max(result, key=lambda x: x[1])
