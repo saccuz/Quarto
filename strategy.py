@@ -92,5 +92,5 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
     else:
         # Already explored state
         return max(dict_of_states[_key], key=lambda x: x[1])
-    
+    #print(dict_size) #for debugging purpose
     return max(result, key=lambda x: x[1])
