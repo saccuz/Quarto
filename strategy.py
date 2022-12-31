@@ -50,6 +50,8 @@ def evaluate(state: quarto.Quarto) -> int:
 def generate_possible_moves(state: quarto.Quarto):
     positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]
     pieces_free = [p for p in list(range(0,16)) if p not in state._Quarto__board and p != state.get_selected_piece()]
+    if pieces_free == []:
+        return [(x, False) for x in positions] #we reached terminal position, so we have no spare piece to place
     return [x for x in product(positions, pieces_free)]
     
 def minMax(state: quarto.Quarto, dict_of_states: dict):
@@ -78,7 +80,8 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
             # Trying the move and recursively calling the min max on the new state
             tmp_state = deepcopy(state)
             tmp_state.place(ply[0][0],ply[0][1])
-            tmp_state.select(ply[1])
+            if ply[1]: #we check if we have spare piece to place
+                tmp_state.select(ply[1])
             _ , val = minMax(tmp_state, dict_of_states)
             result.append((ply, -val))
 
