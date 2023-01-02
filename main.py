@@ -6,6 +6,11 @@ import argparse
 import random
 import quarto
 
+collisions = 0
+len_dict = 0
+random_moves = 0
+
+
 class ExamPlayer(quarto.Player):
     """ Our player for the exam """
     
@@ -25,16 +30,23 @@ class ExamPlayer(quarto.Player):
             if self.moves_counter == 3:
                 self.strategy.set_dict_size(0)
                 self.moves_counter = 0
-            self.moves_counter += 1
+            else:
+                self.moves_counter += 1
             
         ply, _  = self.strategy.minMax(self.__quarto, self.dict_of_states)
         return ply
 
     def choose_piece(self) -> int:
+        if self.__quarto.get_selected_piece() == -1:
+            return random.randint(0, 15)
         x = self.game_control()
         return x[1]
 
     def place_piece(self) -> tuple:
+        global collisions, len_dict, random_moves
+        collisions = self.strategy.collisions
+        len_dict = len(self.dict_of_states)
+        random_moves = self.strategy.random_moves
         x = self.game_control()
         return x[0]
 
@@ -50,11 +62,31 @@ class RandomPlayer(quarto.Player):
     def place_piece(self) -> tuple:
         return random.randint(0, 3), random.randint(0, 3)
 
+class WePlayer(quarto.Player):
+    """Us as a player"""
+
+    def __init__(self, quarto: quarto.Quarto) -> None:
+        super().__init__(quarto)
+
+    def choose_piece(self) -> int:
+        value = input("Which did he chose? \n(0-15): ")
+        print(f'You entered {value}')
+        return int(value)
+
+    def place_piece(self) -> tuple:
+        print("Where did he put it?")
+        value1 = input("X (0-3): ")
+        value2 = input("Y (0-3): ")
+        print(f'You entered {value1, value2}')
+        return int(value1), int(value2)
 
 def main():
     game = quarto.Quarto()
     game.set_players((ExamPlayer(game), RandomPlayer(game)))
     winner = game.run()
+    logging.warning(f"Collisions: {collisions}")   
+    logging.warning(f"Length of dict: {len_dict}")   
+    logging.warning(f"Random moves: {random_moves}")   
     logging.warning(f"main: Winner: player {winner}")
 
 
