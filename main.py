@@ -36,7 +36,7 @@ class ExamPlayer(quarto.Player):
             else:
                 self.moves_counter += 1
             
-        ply, _  = self.strategy.minMax(self.__quarto, self.dict_of_states)
+        ply, _  = self.strategy.minMax(self.__quarto, self.dict_of_states, 0)
         return ply
 
     def choose_piece(self) -> int:        

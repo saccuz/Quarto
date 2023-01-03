@@ -4,7 +4,7 @@ import numpy as np
 from itertools import product
 from copy import deepcopy
 
-DEPTH = 400000#400000
+DEPTH = 200000#400000
 dict_size = 0
 collisions = 0
 random_moves = 0
@@ -87,10 +87,10 @@ def generate_possible_moves(state: quarto.Quarto):
     positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]
     pieces_free = [p for p in list(range(0,16)) if p not in state._Quarto__board and p != state._Quarto__selected_piece_index]
     if pieces_free == []:
-        return [(x, False) for x in positions] #we reached terminal position, so we have no spare piece to place
+        return [(x, None) for x in positions] #we reached terminal position, so we have no spare piece to place
     return [x for x in product(positions, pieces_free)]
     
-def minMax(state: quarto.Quarto, dict_of_states: dict):
+def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
     global dict_size, random_moves
     # check if the game is finished
     val = evaluate(state)
@@ -117,9 +117,9 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
             # Trying the move and recursively calling the min max on the new state
             tmp_state = deepcopy(state)
             tmp_state.place(ply[0][0],ply[0][1])
-            if ply[1]: #we check if we have spare piece to place
+            if ply[1] != None: #we check if we have spare piece to place
                 tmp_state.select(ply[1])
-            _ , val = minMax(tmp_state, dict_of_states)
+            _ , val = minMax(tmp_state, dict_of_states, player)
             result.append((ply, -val))
 
             # alpha beta pruning, if dict_size is increasing, we accept also a draft result -> maybe not right

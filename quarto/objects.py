@@ -4,6 +4,7 @@
 import numpy as np
 from abc import abstractmethod
 import copy
+import time
 
 
 class Player(object):
@@ -77,12 +78,12 @@ class Quarto(object):
         Place piece in coordinates (x, y). Returns true on success
         '''
         if self.__placeable(x, y):
-            self.__board[y, x] = self.__selected_piece_index
+            self.__board[x, y] = self.__selected_piece_index
             return True
         return False
 
     def __placeable(self, x: int, y: int) -> bool:
-        return not (y < 0 or x < 0 or x > 3 or y > 3 or self.__board[y, x] >= 0)
+        return not (y < 0 or x < 0 or x > 3 or y > 3 or self.__board[x, y] >= 0)
 
     def print(self):
         '''
@@ -281,6 +282,7 @@ class Quarto(object):
         '''
         Run the game (with output for every move)
         '''
+        start = time.time()
         winner = -1
         while winner < 0 and not self.check_finished():
             self.print()
@@ -294,5 +296,13 @@ class Quarto(object):
                 x, y = self.__players[self.__current_player].place_piece()
                 piece_ok = self.place(x, y)
             winner = self.check_winner()
+
+            mid = time.time()
+            print(f"Current time: {(mid - start)//60} mins and {(mid-start)-(((mid - start)//60)*60)} secs\n")
+
         self.print()
+
+        end = time.time()
+        print(f"Total time: {(end - start)//60} mins and {(end-start)-(((end - start)//60)*60)} secs\n")
+
         return winner
