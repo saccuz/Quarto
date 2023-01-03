@@ -102,7 +102,16 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         k, s, f = check_dict(dict_of_states, state)
         if not f:
             random_moves += 1
-            return ((random.randint(0,3), random.randint(0,3)),random.randint(0,15)),100
+            coord = (-1,-1)
+            piece = -1
+            while not check_move(coord, piece, state):
+                coord = (random.randint(0,3), random.randint(0,3))
+                while not state._Quarto__placeable(coord[0],coord[1]):
+                    coord = (random.randint(0,3), random.randint(0,3))
+                piece = random.randint(0,15)
+                while piece in state._Quarto__board or piece == state._Quarto__selected_piece_index:
+                    piece = random.randint(0,15)
+            return (coord, piece), 100
         else:
             return deSymmetrize(s, max(dict_of_states[k], key=lambda x: x[1]))
 
@@ -119,7 +128,7 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
             tmp_state.place(ply[0][0],ply[0][1])
             if ply[1] != None: #we check if we have spare piece to place
                 tmp_state.select(ply[1])
-            _ , val = minMax(tmp_state, dict_of_states, player)
+            _ , val = minMax(tmp_state, dict_of_states, 1-player)
             result.append((ply, -val))
 
             # alpha beta pruning, if dict_size is increasing, we accept also a draft result -> maybe not right
@@ -134,3 +143,6 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         return deSymmetrize(s, max(dict_of_states[_key], key=lambda x: x[1]))
     #print(dict_size) #for debugging purpose
     return max(result, key=lambda x: x[1])
+
+def check_move(coord, piece, state):
+    return False

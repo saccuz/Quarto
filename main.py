@@ -98,7 +98,7 @@ class WePlayer(quarto.Player):
 
 def main():
     game = quarto.Quarto()
-    game.set_players((ExamPlayer(game), WePlayer(game)))
+    game.set_players((ExamPlayer(game), RandomPlayer(game)))
     winner = game.run()
     logging.warning(f"Collisions: {collisions}")   
     logging.warning(f"Length of dict: {len_dict}")   
