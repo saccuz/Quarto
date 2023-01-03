@@ -4,10 +4,11 @@ import numpy as np
 from itertools import product
 from copy import deepcopy
 
-DEPTH = 400000
+DEPTH = 400000#400000
 dict_size = 0
 collisions = 0
 random_moves = 0
+player = 0
 
 # utility function to interface with the player
 def get_depth_limit() -> bool:
@@ -22,11 +23,44 @@ def set_dict_size(x: int) -> None:
 # check state's symmetries generating all possible dictionary's key
 def generate_keys(board, piece) -> list:
     possible_keys = []
+    #reflections = {}
     for rot in range(0,4):
         sym = np.rot90(board,k=rot)
-        possible_keys.append((sym.tobytes(), piece)) #str is used to make ndarray (return of get_board_status) hashable
-        possible_keys.append((sym.T.tobytes(), piece))
+        possible_keys.append(((sym.tobytes(), piece), f'rot{rot}'))
+        possible_keys.append(((sym.T.tobytes(), piece), f'Trot{rot}'))
+        #if (rot == 1):
+        #    reflections['horizontal'] = sym.T
+        #if (rot == 3):
+        #    reflections['vertical'] = sym.T
+
+    #for axis in ['horizontal', 'vertical']:
+    #    for distance in range(1, 4):
+    #        glide_reflection = np.vstack((reflections[axis][distance:], reflections[axis][:distance]))
+    #        possible_keys.append(((np.asarray(glide_reflection).tobytes(), piece), f'g_{axis[0]}_{distance}'))
+    
     return possible_keys
+
+def deSymmetrize(symmetry, value):
+    x, y = value[0][0]
+    piece = value[0][1]
+    val = value[1]
+    if symmetry == 'rot0':
+        return ((x, y), piece), val
+    elif symmetry == 'rot1':
+        return ((3-y, 3-x), piece), val
+    elif symmetry == 'rot2':
+        return ((3-y, 3-x), piece), val
+    elif symmetry == 'rot3':
+        return ((y, 3-x), piece), val
+    elif symmetry == 'Trot0':
+        return ((y, x), piece), val
+    elif symmetry == 'Trot1':
+        return ((3-x, y), piece), val
+    elif symmetry == 'Trot2':
+        return ((3-y, 3-x), piece), val
+    elif symmetry == 'Trot3':
+        return ((x, 3-y), piece), val
+    #TODO: glides (?)
 
 # check if any key is already present in the dictionary
 def check_dict(dict_of_states: dict, state: quarto.Quarto) -> tuple:
@@ -34,10 +68,10 @@ def check_dict(dict_of_states: dict, state: quarto.Quarto) -> tuple:
     piece = state._Quarto__selected_piece_index #get_selected_piece()
     possible_keys = generate_keys(board, piece)
 
-    for k in possible_keys:
+    for k, s in possible_keys:
         if k in dict_of_states:
-            return k, True
-    return (board.tobytes(),piece), False
+            return k, s, True
+    return (board.tobytes(), piece), None, False
 
 # stop condition
 def evaluate(state: quarto.Quarto) -> int:
@@ -65,21 +99,21 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
 
     # depth checking
     if dict_size >= DEPTH:
-        k, f = check_dict(dict_of_states, state)
+        k, s, f = check_dict(dict_of_states, state)
         if not f:
             random_moves += 1
             return ((random.randint(0,3), random.randint(0,3)),random.randint(0,15)),100
         else:
-            return max(dict_of_states[k], key=lambda x: x[1])
+            return deSymmetrize(s, max(dict_of_states[k], key=lambda x: x[1]))
 
     result = list()
-    _key, found = check_dict(dict_of_states, state)
+    _key, s, found = check_dict(dict_of_states, state)
     if not found:
         dict_of_states[_key] = list()
         dict_size += 1
 
         for ply in generate_possible_moves(state):
-            dict_of_states[_key].append((ply,val))
+            dict_of_states[_key].append((ply,-100))
             # Trying the move and recursively calling the min max on the new state
             tmp_state = deepcopy(state)
             tmp_state.place(ply[0][0],ply[0][1])
@@ -97,6 +131,6 @@ def minMax(state: quarto.Quarto, dict_of_states: dict):
         global collisions
         collisions += 1
         # Already explored state
-        return max(dict_of_states[_key], key=lambda x: x[1])
+        return deSymmetrize(s, max(dict_of_states[_key], key=lambda x: x[1]))
     #print(dict_size) #for debugging purpose
     return max(result, key=lambda x: x[1])

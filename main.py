@@ -16,6 +16,9 @@ class ExamPlayer(quarto.Player):
     
     import strategy
 
+    passed = 0
+    move = tuple()
+
     dict_of_states = dict() # dictionary to store the possible states
     moves_counter = 0 # duration of the not searching minMax
     __quarto = None
@@ -27,7 +30,7 @@ class ExamPlayer(quarto.Player):
     # interface to the minMax function 
     def game_control(self):
         if self.strategy.get_depth_limit(): # control to limit the depth search
-            if self.moves_counter == 3:
+            if self.moves_counter == 2:
                 self.strategy.set_dict_size(0)
                 self.moves_counter = 0
             else:
@@ -36,19 +39,32 @@ class ExamPlayer(quarto.Player):
         ply, _  = self.strategy.minMax(self.__quarto, self.dict_of_states)
         return ply
 
-    def choose_piece(self) -> int:
+    def choose_piece(self) -> int:        
         if self.__quarto.get_selected_piece() == -1:
             return random.randint(0, 15)
-        x = self.game_control()
-        return x[1]
+
+        if self.passed == 0:
+            self.move = self.game_control()
+            self.passed = 1
+            return self.move[1]
+        else:
+            self.passed = 0
+            return self.move[1]
 
     def place_piece(self) -> tuple:
         global collisions, len_dict, random_moves
         collisions = self.strategy.collisions
         len_dict = len(self.dict_of_states)
         random_moves = self.strategy.random_moves
-        x = self.game_control()
-        return x[0]
+
+        if self.passed == 0:
+            self.move = self.game_control()
+            self.passed = 1
+            return self.move[0]
+        else:
+            self.passed = 0
+            return self.move[0]
+
 
 class RandomPlayer(quarto.Player):
     """Random player"""
@@ -82,7 +98,7 @@ class WePlayer(quarto.Player):
 
 def main():
     game = quarto.Quarto()
-    game.set_players((ExamPlayer(game), RandomPlayer(game)))
+    game.set_players((ExamPlayer(game), WePlayer(game)))
     winner = game.run()
     logging.warning(f"Collisions: {collisions}")   
     logging.warning(f"Length of dict: {len_dict}")   
