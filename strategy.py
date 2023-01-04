@@ -4,7 +4,7 @@ import numpy as np
 from itertools import product
 from copy import deepcopy
 
-DEPTH = 200000#400000
+DEPTH = 400000#400000
 dict_size = 0
 collisions = 0
 random_moves = 0
@@ -19,26 +19,6 @@ def get_depth_limit() -> bool:
 def set_dict_size(x: int) -> None:
     global dict_size
     dict_size = x
-
-# check state's symmetries generating all possible dictionary's key
-def generate_keys(board, piece) -> list:
-    possible_keys = []
-    #reflections = {}
-    for rot in range(0,4):
-        sym = np.rot90(board,k=rot)
-        possible_keys.append(((sym.tobytes(), piece), f'rot{rot}'))
-        possible_keys.append(((sym.T.tobytes(), piece), f'Trot{rot}'))
-        #if (rot == 1):
-        #    reflections['horizontal'] = sym.T
-        #if (rot == 3):
-        #    reflections['vertical'] = sym.T
-
-    #for axis in ['horizontal', 'vertical']:
-    #    for distance in range(1, 4):
-    #        glide_reflection = np.vstack((reflections[axis][distance:], reflections[axis][:distance]))
-    #        possible_keys.append(((np.asarray(glide_reflection).tobytes(), piece), f'g_{axis[0]}_{distance}'))
-    
-    return possible_keys
 
 def deSymmetrize(symmetry, value):
     x, y = value[0][0]
@@ -61,6 +41,26 @@ def deSymmetrize(symmetry, value):
     elif symmetry == 'Trot3':
         return ((x, 3-y), piece), val
     #TODO: glides (?)
+
+# check state's symmetries generating all possible dictionary's key
+def generate_keys(board, piece) -> list:
+    possible_keys = []
+    #reflections = {}
+    for rot in range(0,4):
+        sym = np.rot90(board,k=rot)
+        possible_keys.append(((sym.tobytes(), piece), f'rot{rot}'))
+        possible_keys.append(((sym.T.tobytes(), piece), f'Trot{rot}'))
+        #if (rot == 1):
+        #    reflections['horizontal'] = sym.T
+        #if (rot == 3):
+        #    reflections['vertical'] = sym.T
+
+    #for axis in ['horizontal', 'vertical']:
+    #    for distance in range(1, 4):
+    #        glide_reflection = np.vstack((reflections[axis][distance:], reflections[axis][:distance]))
+    #        possible_keys.append(((np.asarray(glide_reflection).tobytes(), piece), f'g_{axis[0]}_{distance}'))
+    
+    return possible_keys
 
 # check if any key is already present in the dictionary
 def check_dict(dict_of_states: dict, state: quarto.Quarto) -> tuple:
@@ -87,11 +87,38 @@ def generate_possible_moves(state: quarto.Quarto):
     positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]
     pieces_free = [p for p in list(range(0,16)) if p not in state._Quarto__board and p != state._Quarto__selected_piece_index]
     if pieces_free == []:
-        return [(x, None) for x in positions] #we reached terminal position, so we have no spare piece to place
+        return [(x, None) for x in positions] # we reached terminal position, so we have no spare piece to place
     return [x for x in product(positions, pieces_free)]
-    
+
+# check if the move is at least not bad
+def check_move(coord, piece, state: quarto.Quarto):
+    state.place(coord[0], coord[1])
+    if evaluate(state) != 0:
+        # if is a win or a draw, it is not a bad move for sure
+        return True
+    else:
+        state.select(piece)
+        for pp in [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]:
+
+            # check if the opponent can win with this piece
+            state.place(pp[0], pp[1])
+            if evaluate(state) != 0:
+                return False
+            state._Quarto__board[pp[0]][pp[1]] = -1 # undo the placing of the piece
+        return True
+
+# generate a possible move without exploring too much (just a little to avoid suicidal moves if possible)
+def generate_fast(state: quarto.Quarto):
+    tmp_state = deepcopy(state)
+    for coord, piece in generate_possible_moves(state):
+        if check_move(coord, piece, tmp_state):
+            # take the first not suicidal move found
+            return (coord, piece), 100
+    return (coord, piece), 100
+
 def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
     global dict_size, random_moves
+
     # check if the game is finished
     val = evaluate(state)
     if val != 0:
@@ -102,16 +129,7 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         k, s, f = check_dict(dict_of_states, state)
         if not f:
             random_moves += 1
-            coord = (-1,-1)
-            piece = -1
-            while not check_move(coord, piece, state):
-                coord = (random.randint(0,3), random.randint(0,3))
-                while not state._Quarto__placeable(coord[0],coord[1]):
-                    coord = (random.randint(0,3), random.randint(0,3))
-                piece = random.randint(0,15)
-                while piece in state._Quarto__board or piece == state._Quarto__selected_piece_index:
-                    piece = random.randint(0,15)
-            return (coord, piece), 100
+            return generate_fast(state)
         else:
             return deSymmetrize(s, max(dict_of_states[k], key=lambda x: x[1]))
 
@@ -141,8 +159,5 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         collisions += 1
         # Already explored state
         return deSymmetrize(s, max(dict_of_states[_key], key=lambda x: x[1]))
-    #print(dict_size) #for debugging purpose
-    return max(result, key=lambda x: x[1])
 
-def check_move(coord, piece, state):
-    return False
+    return max(result, key=lambda x: x[1])
