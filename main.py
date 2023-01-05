@@ -30,7 +30,7 @@ class ExamPlayer(quarto.Player):
     # interface to the minMax function 
     def game_control(self):
         if self.strategy.get_depth_limit(): # control to limit the depth search
-            if self.moves_counter == 2:
+            if self.moves_counter == 3:
                 self.strategy.set_dict_size(0)
                 self.moves_counter = 0
             else:
@@ -97,7 +97,13 @@ class WePlayer(quarto.Player):
         return int(value1), int(value2)
 
 def main():
+    import numpy as np
     game = quarto.Quarto()
+
+    #game._Quarto__board = np.array([[15,2,-1,0],[5,13,11,6],[8,1,10,-1],[4,-1,-1,7]])
+    # game._Quarto__board = np.array([[15,2,-1,0],[5,-1,11,-1],[8,-1,10,-1],[4,-1,-1,-1]])
+    # game._Quarto__selected_piece_index = 12
+    
     game.set_players((ExamPlayer(game), RandomPlayer(game)))
     winner = game.run()
     logging.warning(f"Collisions: {collisions}")   

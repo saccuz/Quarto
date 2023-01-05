@@ -48,11 +48,12 @@ if __name__ == '__main__':
         if _key == '':
             value = input("Insert piece characteristic: ")
             if value[0].isdigit():
-                p = printer(pieces, None, value)
+                k = printer(pieces, None, value)[0]
+                p = k, encoder(printer(pieces, k, None))
             else:
                 p = "Wrong value, retry"
         elif _key.isdigit() and int(_key) < 16:
-            p = encoder(printer(pieces,int(_key), None))
+            p = int(_key), encoder(printer(pieces,int(_key), None))
         elif _key == "Z":
             break
         else:

@@ -91,7 +91,7 @@ def generate_possible_moves(state: quarto.Quarto):
     return [x for x in product(positions, pieces_free)]
 
 # check if the move is at least not bad
-def check_move(coord, piece, state: quarto.Quarto):
+def check_move(coord, piece, state: quarto.Quarto) -> bool:
     state.place(coord[0], coord[1])
     if evaluate(state) != 0:
         # if is a win or a draw, it is not a bad move for sure
@@ -116,6 +116,32 @@ def generate_fast(state: quarto.Quarto):
             return (coord, piece), 100
     return (coord, piece), 100
 
+# check if there are three pieces in a row, column or diagonal
+def check_three(state: quarto.Quarto) -> list:
+    board = state._Quarto__board
+    ret = [[],[],[],[]]
+    # check row
+    r = np.count_nonzero(board == -1, axis=1) # check how many void places there are in any row
+    c = np.count_nonzero(board == -1, axis=0) # check how many void places there are in any column
+    d = np.count_nonzero(np.diag(board == -1)) # check how many void places there are in the main diagonal
+    d_i = np.count_nonzero(np.diag(np.fliplr(board == -1))) # check how many void places there are in the inverse diagonal
+    ret[0] = np.where(r == 1)[0].tolist()
+    ret[1] = np.where(c == 1)[0].tolist()
+    ret[2] = np.where(d == 1)[0].tolist()
+    ret[3] = np.where(d_i == 1)[0].tolist()
+    return ret
+
+# order moves in order to prioritize those who place the fourth piece in a line
+def order_moves(moves: list, three: list):
+    vip = []
+    not_vip = []
+    for m, _ in moves:
+        if m[0] in three[0] or m[1] in three[1] or (m[0]==m[1] and three[2] != []) or (m[0] == 3-m[1] and three[3] != []):
+            vip.append((m,_))
+        else:
+            not_vip.append((m,_))
+    return [*vip, *not_vip], vip
+
 def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
     global dict_size, random_moves
 
@@ -139,7 +165,16 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         dict_of_states[_key] = list()
         dict_size += 1
 
-        for ply in generate_possible_moves(state):
+        three = check_three(state)
+        moves, vip = order_moves(generate_possible_moves(state),three)
+        tmp_state = deepcopy(state)
+
+        for m in vip: # rapid scan of possible suicidal moves
+            if not check_move(m[0],m[1], tmp_state):
+                moves.remove(m)
+                dict_of_states[_key].append((m,-100))
+
+        for ply in moves:
             dict_of_states[_key].append((ply,-100))
             # Trying the move and recursively calling the min max on the new state
             tmp_state = deepcopy(state)
