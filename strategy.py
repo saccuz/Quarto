@@ -113,13 +113,13 @@ def generate_fast(state: quarto.Quarto):
     for coord, piece in generate_possible_moves(state):
         if check_move(coord, piece, tmp_state):
             # take the first not suicidal move found
-            return (coord, piece), 100
+            return (coord, piece), 50
     return (coord, piece), 100
 
 # check if there are three pieces in a row, column or diagonal
 def check_three(state: quarto.Quarto) -> list:
     board = state._Quarto__board
-    ret = [[],[],[],[]]
+    ret = [[],[],[],[]] # row, col, diag, inverse-diag 
     # check row
     r = np.count_nonzero(board == -1, axis=1) # check how many void places there are in any row
     c = np.count_nonzero(board == -1, axis=0) # check how many void places there are in any column
