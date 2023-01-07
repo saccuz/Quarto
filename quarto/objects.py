@@ -78,12 +78,12 @@ class Quarto(object):
         Place piece in coordinates (x, y). Returns true on success
         '''
         if self.__placeable(x, y):
-            self.__board[x, y] = self.__selected_piece_index
+            self.__board[y, x] = self.__selected_piece_index
             return True
         return False
 
     def __placeable(self, x: int, y: int) -> bool:
-        return not (y < 0 or x < 0 or x > 3 or y > 3 or self.__board[x, y] >= 0)
+        return not (y < 0 or x < 0 or x > 3 or y > 3 or self.__board[y, x] >= 0)
 
     def print(self):
         '''

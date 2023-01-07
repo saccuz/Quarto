@@ -4,7 +4,7 @@ import numpy as np
 from itertools import product
 from copy import deepcopy
 
-DEPTH = 400000#400000
+DEPTH = 100000#400000
 dict_size = 0
 collisions = 0
 random_moves = 0
@@ -104,16 +104,19 @@ def check_move(coord, piece, state: quarto.Quarto) -> bool:
             state.place(pp[0], pp[1])
             if evaluate(state) != 0:
                 return False
-            state._Quarto__board[pp[0]][pp[1]] = -1 # undo the placing of the piece
+            state._Quarto__board[pp[1]][pp[0]] = -1 # undo the placing of the piece
         return True
 
 # generate a possible move without exploring too much (just a little to avoid suicidal moves if possible)
-def generate_fast(state: quarto.Quarto):
+def generate_fast(dict_of_states: dict, state: quarto.Quarto, k):
     tmp_state = deepcopy(state)
     for coord, piece in generate_possible_moves(state):
         if check_move(coord, piece, tmp_state):
             # take the first not suicidal move found
             return (coord, piece), 50
+        else:
+            # if it was a suicidal move, then add this info to the dictionary
+            dict_of_states[k] = [((coord,piece),-100)]
     return (coord, piece), 100
 
 # check if there are three pieces in a row, column or diagonal
@@ -136,7 +139,7 @@ def order_moves(moves: list, three: list):
     vip = []
     not_vip = []
     for m, _ in moves:
-        if m[0] in three[0] or m[1] in three[1] or (m[0]==m[1] and three[2] != []) or (m[0] == 3-m[1] and three[3] != []):
+        if m[1] in three[0] or m[0] in three[1] or (m[0]==m[1] and three[2] != []) or (m[0] == 3-m[1] and three[3] != []):
             vip.append((m,_))
         else:
             not_vip.append((m,_))
@@ -155,7 +158,7 @@ def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
         k, s, f = check_dict(dict_of_states, state)
         if not f:
             random_moves += 1
-            return generate_fast(state)
+            return generate_fast(dict_of_states, state,k)
         else:
             return deSymmetrize(s, max(dict_of_states[k], key=lambda x: x[1]))
 
