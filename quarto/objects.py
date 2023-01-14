@@ -282,7 +282,6 @@ class Quarto(object):
         '''
         Run the game (with output for every move)
         '''
-        start = time.time()
         winner = -1
         while winner < 0 and not self.check_finished():
             self.print()
@@ -297,12 +296,6 @@ class Quarto(object):
                 piece_ok = self.place(x, y)
             winner = self.check_winner()
 
-            mid = time.time()
-            print(f"Current time: {(mid - start)//60} mins and {(mid-start)-(((mid - start)//60)*60)} secs\n")
-
         self.print()
-
-        end = time.time()
-        print(f"Total time: {(end - start)//60} mins and {(end-start)-(((end - start)//60)*60)} secs\n")
 
         return winner
