@@ -4,11 +4,82 @@ import numpy as np
 from itertools import product
 from copy import deepcopy
 
-DEPTH = 100000#400000
+# global variables
+DEPTH = 400000
 dict_size = 0
 collisions = 0
 random_moves = 0
 player = 0
+
+## Player Classes
+
+class ExamPlayer(quarto.Player):
+    """ Our player for the exam """
+
+    passed = 0
+    move = tuple()
+
+    dict_of_states = dict() # dictionary to store the possible states
+    moves_counter = 0 # duration of the not searching minMax
+    __quarto = None
+    
+    def __init__(self, quarto: quarto.Quarto) -> None:
+        super().__init__(quarto)
+        self.__quarto = quarto
+    
+    # interface to the minMax function 
+    def game_control(self):
+        if get_depth_limit(): # control to limit the depth search
+            if self.moves_counter == 3:
+                set_dict_size(0)
+                self.moves_counter = 0
+            else:
+                self.moves_counter += 1
+            
+        ply, _  = minMax(self.__quarto, self.dict_of_states, 0)
+        return ply
+
+    def choose_piece(self) -> int:        
+        if self.__quarto.get_selected_piece() == -1:
+            return random.randint(0, 15)
+
+        if self.passed == 0:
+            self.move = self.game_control()
+            self.passed = 1
+            return self.move[1]
+        else:
+            self.passed = 0
+            return self.move[1]
+
+    def place_piece(self) -> tuple:
+        if self.passed == 0:
+            self.move = self.game_control()
+            self.passed = 1
+            return self.move[0]
+        else:
+            self.passed = 0
+            return self.move[0]
+
+class WePlayer(quarto.Player):
+    """Us as a player"""
+
+    def __init__(self, quarto: quarto.Quarto) -> None:
+        super().__init__(quarto)
+
+    def choose_piece(self) -> int:
+        value = input("Which did he chose? \n(0-15): ")
+        print(f'You entered {value}')
+        return int(value)
+
+    def place_piece(self) -> tuple:
+        print("Where did he put it?")
+        value1 = input("X (0-3): ")
+        value2 = input("Y (0-3): ")
+        print(f'You entered {value1, value2}')
+        return int(value1), int(value2)
+
+
+## Strategy functions
 
 # utility function to interface with the player
 def get_depth_limit() -> bool:
@@ -20,6 +91,7 @@ def set_dict_size(x: int) -> None:
     global dict_size
     dict_size = x
 
+# project move's coordinates in the right frame of reference
 def deSymmetrize(symmetry, value):
     x, y = value[0][0]
     piece = value[0][1]
@@ -40,25 +112,14 @@ def deSymmetrize(symmetry, value):
         return ((3-y, 3-x), piece), val
     elif symmetry == 'Trot3':
         return ((x, 3-y), piece), val
-    #TODO: glides (?)
 
 # check state's symmetries generating all possible dictionary's key
 def generate_keys(board, piece) -> list:
     possible_keys = []
-    #reflections = {}
     for rot in range(0,4):
         sym = np.rot90(board,k=rot)
         possible_keys.append(((sym.tobytes(), piece), f'rot{rot}'))
         possible_keys.append(((sym.T.tobytes(), piece), f'Trot{rot}'))
-        #if (rot == 1):
-        #    reflections['horizontal'] = sym.T
-        #if (rot == 3):
-        #    reflections['vertical'] = sym.T
-
-    #for axis in ['horizontal', 'vertical']:
-    #    for distance in range(1, 4):
-    #        glide_reflection = np.vstack((reflections[axis][distance:], reflections[axis][:distance]))
-    #        possible_keys.append(((np.asarray(glide_reflection).tobytes(), piece), f'g_{axis[0]}_{distance}'))
     
     return possible_keys
 
@@ -145,6 +206,7 @@ def order_moves(moves: list, three: list):
             not_vip.append((m,_))
     return [*vip, *not_vip], vip
 
+# implementing minMax algorithm
 def minMax(state: quarto.Quarto, dict_of_states: dict, player: int):
     global dict_size, random_moves
 
