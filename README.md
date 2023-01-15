@@ -23,13 +23,13 @@ We decided to implement a **stopping condition** in the exploration, based on th
 To further reduce the exploration space, we decide to randomly make the first move (piece selection), in this way at the beginning of the exploration we can cut 15/16th of the original search tree.
 
 ## Bibliography
-[1] https://www.slideshare.net/MatthewKerner2/quarto-55043713
+- https://www.slideshare.net/MatthewKerner2/quarto-55043713
 
-[2] https://web.archive.org/web/20041012023358/http://ssel.vub.ac.be/Members/LucGoossens/quarto/quartotext.htm
+- https://web.archive.org/web/20041012023358/http://ssel.vub.ac.be/Members/LucGoossens/quarto/quartotext.htm
 
-[3] https://www.mathpages.com/home/kmath352.htm
+- https://www.mathpages.com/home/kmath352.htm
 
-[4] http://web.archive.org/web/20120306212129/http://www.cs.rhul.ac.uk/~wouter/Talks/quarto.pdf
+- http://web.archive.org/web/20120306212129/http://www.cs.rhul.ac.uk/~wouter/Talks/quarto.pdf
 
 ## Contributors
 
