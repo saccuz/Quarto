@@ -125,7 +125,7 @@ def generate_keys(board, piece) -> list:
 
 # check if any key is already present in the dictionary
 def check_dict(dict_of_states: dict, state: quarto.Quarto) -> tuple:
-    board = state._Quarto__board #get_board_status()
+    board = state._board #get_board_status()
     piece = state._Quarto__selected_piece_index #get_selected_piece()
     possible_keys = generate_keys(board, piece)
 
@@ -146,7 +146,7 @@ def evaluate(state: quarto.Quarto) -> int:
 # generate every possible piece placement and piece selection
 def generate_possible_moves(state: quarto.Quarto):
     positions = [(x,y) for x,y in product(list(range(0,4)), repeat=2) if state._Quarto__placeable(x,y)]
-    pieces_free = [p for p in list(range(0,16)) if p not in state._Quarto__board and p != state._Quarto__selected_piece_index]
+    pieces_free = [p for p in list(range(0,16)) if p not in state._board and p != state._Quarto__selected_piece_index]
     if pieces_free == []:
         return [(x, None) for x in positions] # we reached terminal position, so we have no spare piece to place
     return [x for x in product(positions, pieces_free)]
@@ -165,7 +165,7 @@ def check_move(coord, piece, state: quarto.Quarto) -> bool:
             state.place(pp[0], pp[1])
             if evaluate(state) != 0:
                 return False
-            state._Quarto__board[pp[1]][pp[0]] = -1 # undo the placing of the piece
+            state._board[pp[1]][pp[0]] = -1 # undo the placing of the piece
         return True
 
 # generate a possible move without exploring too much (just a little to avoid suicidal moves if possible)
@@ -182,7 +182,7 @@ def generate_fast(dict_of_states: dict, state: quarto.Quarto, k):
 
 # check if there are three pieces in a row, column or diagonal
 def check_three(state: quarto.Quarto) -> list:
-    board = state._Quarto__board
+    board = state._board
     ret = [[],[],[],[]] # row, col, diag, inverse-diag 
     # check row
     r = np.count_nonzero(board == -1, axis=1) # check how many void places there are in any row
