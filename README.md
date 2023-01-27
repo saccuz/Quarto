@@ -41,6 +41,7 @@ Smaller values are useful only against random or for code-testing purposes.
 (Measures were taken using python _time_ library on a AMD Ryzen 5 3600x)
 
 ## Sources
+Besides the code provided by the professors, we used the following sources:
 - Theoretical:
     - https://www.slideshare.net/MatthewKerner2/quarto-55043713
 
